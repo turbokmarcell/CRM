@@ -64,16 +64,24 @@
     </table>
 
     <script>
-        const apiBaseUrl = "https://customercrmfunctions.azurewebsites.net/api"; // Az Azure Function URL-je
+        const apiBaseUrl = "https://customercrmfunctions.azurewebsites.net/api"; // Replace with your Function App URL
+        const functionKey = "B4SUoM6CgKc_lJC33WHwq2PAmkai4J7CI_Ovn_G2TEBTAzFuHtQTHQ=="; // Function key
 
         // Fetch all customers
         async function fetchCustomers() {
             const response = await fetch(`${apiBaseUrl}/GET`, {
-                method: "GET", // GET művelet
+                method: "GET",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "x-functions-key": functionKey // API key added to the header
                 }
             });
+
+            if (!response.ok) {
+                console.error("Failed to fetch customers:", response.statusText);
+                return;
+            }
+
             const customers = await response.json();
             const tableBody = document.querySelector("#customerTable tbody");
             tableBody.innerHTML = "";
@@ -104,10 +112,11 @@
                 phone: document.getElementById("customerPhone").value
             };
 
-            await fetch(`${apiBaseUrl}/GET`, {
-                method: "POST", // POST művelet
+            await fetch(`${apiBaseUrl}/POST`, {
+                method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "x-functions-key": functionKey // API key added to the header
                 },
                 body: JSON.stringify(customer)
             });
@@ -118,8 +127,11 @@
 
         // Delete a customer
         async function deleteCustomer(customerId) {
-            await fetch(`${apiBaseUrl}/GET/${customerId}`, {
-                method: "DELETE" // DELETE művelet
+            await fetch(`${apiBaseUrl}/DELETE/${customerId}`, {
+                method: "DELETE",
+                headers: {
+                    "x-functions-key": functionKey // API key added to the header
+                }
             });
             fetchCustomers();
         }
