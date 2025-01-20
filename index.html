@@ -64,55 +64,41 @@
     </table>
 
     <script>
-        const apiBaseUrl = "https://customercrmfunctions.azurewebsites.net/api"; // Replace with your Function App URL
-        const functionKey = "B4SUoM6CgKc_lJC33WHwq2PAmkai4J7CI_Ovn_G2TEBTAzFuHtQTHQ=="; // Function key
+        const apiBaseUrl = "https://customercrmfunctions.azurewebsites.net/api"; // Az alap URL
+        const functionName = "GET";  // A Function neve
 
         // Fetch all customers
-async function fetchCustomers() {
-    try {
-        const response = await fetch(`${apiBaseUrl}/GET`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "x-functions-key": functionKey // API key added to the header
+        async function fetchCustomers() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/${functionName}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-functions-key": "B4SUoM6CgKc_lJC33WHwq2PAmkai4J7CI_Ovn_G2TEBTAzFuHtQTHQ=="  // A Function kulcs
+                    }
+                });
+
+                const customers = await response.json();  // Válasz JSON-ként való kezelése
+                const tableBody = document.querySelector("#customerTable tbody");
+                tableBody.innerHTML = "";
+
+                customers.forEach(customer => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${customer.id}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.phone}</td>
+                        <td>
+                            <button onclick="deleteCustomer('${customer.id}')">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching customers:", error);
             }
-        });
-
-        // Ellenőrizzük, hogy a válasz státusza sikeres-e
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
-        // Kiolvassuk a válasz szövegét
-        const responseText = await response.text();
-
-        // Próbáljuk JSON-ra konvertálni a választ
-        try {
-            const customers = JSON.parse(responseText);
-            const tableBody = document.querySelector("#customerTable tbody");
-            tableBody.innerHTML = "";
-
-            customers.forEach(customer => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${customer.id}</td>
-                    <td>${customer.name}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.phone}</td>
-                    <td>
-                        <button onclick="deleteCustomer('${customer.id}')">Delete</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } catch (e) {
-            console.error("Invalid JSON:", responseText);
-        }
-
-    } catch (error) {
-        console.error("Error fetching customers:", error);
-    }
-}
 
         // Add a new customer
         document.getElementById("addCustomerForm").addEventListener("submit", async (event) => {
@@ -125,28 +111,36 @@ async function fetchCustomers() {
                 phone: document.getElementById("customerPhone").value
             };
 
-            await fetch(`${apiBaseUrl}/POST`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-functions-key": functionKey // API key added to the header
-                },
-                body: JSON.stringify(customer)
-            });
+            try {
+                await fetch(`${apiBaseUrl}/add_customer`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-functions-key": "B4SUoM6CgKc_lJC33WHwq2PAmkai4J7CI_Ovn_G2TEBTAzFuHtQTHQ=="
+                    },
+                    body: JSON.stringify(customer)
+                });
 
-            fetchCustomers();
-            event.target.reset();
+                fetchCustomers();
+                event.target.reset();
+            } catch (error) {
+                console.error("Error adding customer:", error);
+            }
         });
 
         // Delete a customer
         async function deleteCustomer(customerId) {
-            await fetch(`${apiBaseUrl}/DELETE/${customerId}`, {
-                method: "DELETE",
-                headers: {
-                    "x-functions-key": functionKey // API key added to the header
-                }
-            });
-            fetchCustomers();
+            try {
+                await fetch(`${apiBaseUrl}/delete_customer/${customerId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "x-functions-key": "B4SUoM6CgKc_lJC33WHwq2PAmkai4J7CI_Ovn_G2TEBTAzFuHtQTHQ=="
+                    }
+                });
+                fetchCustomers();
+            } catch (error) {
+                console.error("Error deleting customer:", error);
+            }
         }
 
         // Load customers on page load
