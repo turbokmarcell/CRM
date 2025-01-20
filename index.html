@@ -64,11 +64,16 @@
     </table>
 
     <script>
-        const apiBaseUrl = "customercrmfunctions.azurewebsites.net/api"; // Replace with your Function App URL
+        const apiBaseUrl = "https://customercrmfunctions.azurewebsites.net/api"; // Az Azure Function URL-je
 
         // Fetch all customers
         async function fetchCustomers() {
-            const response = await fetch(`${apiBaseUrl}/GET`);
+            const response = await fetch(`${apiBaseUrl}/get_customers`, {
+                method: "GET", // GET művelet
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
             const customers = await response.json();
             const tableBody = document.querySelector("#customerTable tbody");
             tableBody.innerHTML = "";
@@ -99,8 +104,8 @@
                 phone: document.getElementById("customerPhone").value
             };
 
-            await fetch(`${apiBaseUrl}/POST`, {
-                method: "POST",
+            await fetch(`${apiBaseUrl}/add_customer`, {
+                method: "POST", // POST művelet
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -113,8 +118,8 @@
 
         // Delete a customer
         async function deleteCustomer(customerId) {
-            await fetch(`${apiBaseUrl}/DELETE/${customerId}`, {
-                method: "DELETE"
+            await fetch(`${apiBaseUrl}/delete_customer/${customerId}`, {
+                method: "DELETE" // DELETE művelet
             });
             fetchCustomers();
         }
