@@ -68,21 +68,27 @@
         const functionKey = "B4SUoM6CgKc_lJC33WHwq2PAmkai4J7CI_Ovn_G2TEBTAzFuHtQTHQ=="; // Function key
 
         // Fetch all customers
-        async function fetchCustomers() {
-            const response = await fetch(`${apiBaseUrl}/GET`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-functions-key": functionKey // API key added to the header
-                }
-            });
-
-            if (!response.ok) {
-                console.error("Failed to fetch customers:", response.statusText);
-                return;
+async function fetchCustomers() {
+    try {
+        const response = await fetch(`${apiBaseUrl}/GET`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "x-functions-key": functionKey // API key added to the header
             }
+        });
 
-            const customers = await response.json();
+        // Ellenőrizzük, hogy a válasz státusza sikeres-e
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // Kiolvassuk a válasz szövegét
+        const responseText = await response.text();
+
+        // Próbáljuk JSON-ra konvertálni a választ
+        try {
+            const customers = JSON.parse(responseText);
             const tableBody = document.querySelector("#customerTable tbody");
             tableBody.innerHTML = "";
 
@@ -99,7 +105,14 @@
                 `;
                 tableBody.appendChild(row);
             });
+        } catch (e) {
+            console.error("Invalid JSON:", responseText);
         }
+
+    } catch (error) {
+        console.error("Error fetching customers:", error);
+    }
+}
 
         // Add a new customer
         document.getElementById("addCustomerForm").addEventListener("submit", async (event) => {
